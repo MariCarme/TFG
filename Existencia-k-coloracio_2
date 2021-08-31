@@ -1,0 +1,34 @@
+#Definicio Graf
+vertex = 5
+colors = 3
+arestes =((1,2), (1, 3), (1, 5), (2, 3), (2, 4), (3, 4), (3, 5), (4, 5))
+#Anell de polinomis
+C,variables = PolynomialRing(CC,vertex,"x").objgens()
+
+#Definicio f_G
+f_g=1
+for i in range(len(arestes)):
+    f_g *= variables[arestes[i][0]-1] -variables[arestes[i][1]-1]
+
+#Definicio G_n,k
+G_nk =[]
+
+s=[]
+for number in range(vertex):
+    s.append(number)
+
+possible_i = Subsets (s, colors+1).list()
+
+for possibility in range(len(possible_i)):
+    poly_aux = 1
+    for s in range(1,colors+1):
+        for r in range(s):
+            poly_aux *=variables[possible_i[possibility][r]]-variables[possible_i[possibility][s]]
+    G_nk.append(poly_aux)
+    
+#Multidivisio
+if f_g.mod(G_nk) == 0:
+    print(f"No existeix cap {colors}-coloració.")
+else:
+    print(f"Existeix alguna {colors}-coloració.")
+    
