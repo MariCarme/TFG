@@ -1,0 +1,25 @@
+#Definicio Graf
+vertex_1 = 5
+colors = 4
+arestes_2=((1,2), (1, 3), (1, 5), (2, 3), (2, 4), (3, 4), (3, 5), (4, 5))
+arestes_1=[[1,2],[1,3],[1,5],[2,3],[2,4],[3,4],[3,5],[4,5]]
+#Anell de polinomis
+C,variables = PolynomialRing(CC,vertex,"x").objgens()
+#Ideal igk
+generadors =[]
+for i in range(vertex):
+    generadors.append(variables[i]^colors-1)
+for j in range(len(arestes)):
+    v_1 = variables[arestes[j][0]-1]
+    v_2 = variables[arestes[j][1]-1]
+    poly = 0
+    for k in range(colors):
+        poly += v_1^k*v_2^(colors-(k+1))
+    generadors.append(poly)
+I_gk = ideal(generadors)
+base = I_gk.groebner_basis()
+print("base"+str(base))
+if 1 in base:
+    print(f"No existeix cap {colors}-coloració.")
+else:
+    print(f"Existeix alguna {colors}-coloració.")
