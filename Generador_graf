@@ -1,0 +1,10 @@
+from networkx.generators.random_graphs import erdos_renyi_graph
+vertex = 100
+p = 0.2
+g = erdos_renyi_graph(vertex, p)
+arestes=[]
+for aresta in g.edges:
+    aux_gen=[]
+    for element in aresta:
+        aux_gen.append(element)
+    arestes.append(aux_gen)
