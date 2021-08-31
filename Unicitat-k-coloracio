@@ -1,0 +1,139 @@
+#Anell de polinomis
+C,variables = PolynomialRing(CC,vertex,"x").objgens()
+#Ideal igk
+generadors =[]
+for i in range(vertex):
+    generadors.append(variables[i]^colors-1)
+for j in range(len(arestes)):
+    v_1 = variables[arestes[j][0]-1]
+    v_2 = variables[arestes[j][1]-1]
+    poly = 0
+    for k in range(colors):
+        poly += v_1^k*v_2^(colors-(k+1))
+    generadors.append(poly)
+
+#Base grobner I_g,k
+I_gk = ideal(generadors)
+base = I_gk.groebner_basis()
+
+###Detectar hj
+def detect_hj(polinomi):
+    #Comprovar tots els coeficients son 1
+    coeficients=polinomi.coefficients()
+    for coef in coeficients:
+        if coef != 1:
+            return False, 0
+    #Comprovar que els coeficients son els que toquen
+    arrels=polinomi.exponents(as_ETuples=False)
+    longitud_llista=len(arrels[0])
+    llista_uns=[1]*longitud_llista
+    exponent=0
+    ##Trobar potencia
+    for power in arrels[0]:
+        exponent+=power
+    degs = WeightedIntegerVectors(exponent, llista_uns)
+    quantitat=0
+    for d in degs:
+        if tuple(d) in arrels:
+            quantitat+=1
+    if quantitat ==len(arrels):
+        return True , exponent
+    else:
+        return False, 0
+        
+#Detectar xi^k-1
+def detect_x_i_k(polinomi):
+    monomis=[a*b for a,b in zip(polinomi.coefficients(),polinomi.monomials())]
+    if (-1 in monomis) and (len(monomis)==2):
+        for i in range(vertex):
+            if variables[i]^colors in monomis:
+                return True, i
+    return False, 0
+#Detectar darrer tipus    
+def detect_resta(polinomis):
+    
+    monomis=[a*b for a,b in zip(polinomis.coefficients(),polinomis.monomials())]
+    if (len(monomis)==2):
+        for i in range(vertex):
+            for j in range(vertex):
+                if variables[i] in monomis and -variables[j] in monomis:
+                    return True, j, i
+    return False, 0
+
+def comprovar_unicitat(base):
+    contador=[0,0,0]
+    maxims_k=[0]*colors
+    vertexs_maxims=[0]*vertex
+    no_maxims=[0]*vertex
+    graus=[0]*(colors-1)
+    polinomis_h_1=[]
+    
+
+    for polinomi in base:
+        if detect_x_i_k(polinomi)[0]:#Done
+            contador[0]+=1
+            
+            resultat=detect_x_i_k(polinomi)
+            
+            vertexs_maxims[resultat[1]]=1
+
+            maxims_k[colors-1]=resultat[1]+1
+
+
+        elif detect_hj(polinomi)[0]:
+            
+            resultat=detect_hj(polinomi)
+            
+            graus[resultat[1]-1]+=1
+            contador[1]+=1
+            
+            if resultat[1]!=1:
+                minim = vertex
+                for maxim in polinomi.variables():
+                    if minim>variables.index(maxim):
+                        minim=variables.index(maxim)
+                vertexs_maxims[minim]=1
+
+                
+                maxims_k[resultat[1]-1]=minim
+  
+            else:
+                polinomis_h_1.append(polinomi)
+            
+            
+        elif detect_resta(polinomi)[0]:#Done
+            
+            resultat = detect_resta(polinomi)
+            
+            contador[2]+=1
+            
+            vertexs_maxims[resultat[1]]=1
+
+            maxims_k[colors-1]=resultat[1]
+            no_maxims[resultat[2]]+=1
+            
+        else:
+            return False
+        
+    #Comprovar que hi ha el nombre correcte de polinomis per tipus    
+    if (contador[0]!=1) or (contador[1]==0) or (contador[2]==0):
+        return False
+    for i in range(1,len(graus)):
+        if graus[i]!=1:
+            return False
+    
+    #Comprovar que es tracta d'una coloració
+    
+    
+    elements_color_1=[]
+    for polinomi_h in polinomis_h_1:
+        contador_no_maxims=0
+        for maxims in polinomi_h.variables():
+            if vertexs_maxims[variables.index(maxims)]!=1:
+                contador_no_maxims+=1
+                elements_color_1.append(variables.index(maxims))
+        if contador_no_maxims != 1:
+            return False
+    
+        
+    return True 
